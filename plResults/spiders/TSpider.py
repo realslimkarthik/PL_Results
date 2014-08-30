@@ -6,11 +6,13 @@ from scrapy.selector import Selector
 from datetime import datetime, time
 from pymongo import MongoClient
 
-seasonLinks = ['1992-1993', '1993-1994', '1994-1995', 
-'1995-1996', '1996-1997', '1997-1998', '1998-1999', '1999-2000', 
-'2000-2001', '2001-2002', '2002-2003', '2003-2004', '2004-2005', 
-'2005-2006', '2006-2007', '2007-2008', '2008-2009', '2009-2010', 
-'2010-2011', '2011-2012', '2012-2013', '2013-2014']
+def seasons():
+    seasonYears = []
+    now = datetime.today().year
+    then = 1992
+    for i in range(then, now + 1):
+        seasonYears.append(str(i) + '-' + str(i+1))
+    return seasonYears
 
 
 url = 'http://www.premierleague.com/en-gb/matchday/results.html?paramClubId=ALL&paramComp_8=true&paramSeason=%s&view=.dateSeason'
@@ -21,7 +23,8 @@ class TheSpider(Spider):
     start_urls = list()
 
     def __init__(self):
-        for i in seasonLinks:
+        seasonYears = seasons()
+        for i in seasonYears:
             self.start_urls.append(url % i)
         
     def parse(self, response):
