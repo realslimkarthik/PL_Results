@@ -1,37 +1,26 @@
 from scrapy.spider import Spider
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
-
 from scrapy.http import Request
 from scrapy.selector import Selector
-from datetime import datetime, time
+from datetime import datetime
 from pymongo import MongoClient
+from utils.utils import get_seasons_list, results_url
 
-def seasons():
-    seasonYears = []
-    now = datetime.today().year
-    then = 1992
-    for i in range(then, now + 1):
-        seasonYears.append(str(i) + '-' + str(i+1))
-    return seasonYears
-
-
-url = 'http://www.premierleague.com/en-gb/matchday/results.html?paramClubId=ALL&paramComp_8=true&paramSeason=%s&view=.dateSeason'
-
-class TheSpider(Spider):
+class ResultsSpider(Spider):
     name = 'TSpider'
     allowed_domains = ['premierleague.com']
     start_urls = list()
 
     def __init__(self):
-        seasonYears = seasons()
-        for i in seasonYears:
-            self.start_urls.append(url % i)
+        seasons = get_seasons_list(1992)
+        for season in seasons:
+            self.start_urls.append(results_url.format(season=season))
         
     def parse(self, response):
-        extractor = SgmlLinkExtractor(allow = ('en-gb/matchday/matches/[0-9]{4}\-[0-9]{4}/epl.match-preview.html/[a-z\-]{0,20}\-vs\-[a-z\-]{0,20}', ))
+        extractor = SgmlLinkExtractor(allow=('en-gb/matchday/matches/[0-9]{4}\-[0-9]{4}/epl.match-preview.html/[a-z\-]{0,20}\-vs\-[a-z\-]{0,20}', ))
         links = extractor.extract_links(response)
         for i in links:
-            yield Request(i.url, callback = self.parse_items)
+            yield Request(i.url, callback=self.parse_items)
         print "url is " + response.url
 
     def parse_items(self, response):
