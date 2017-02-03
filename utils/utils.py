@@ -1,4 +1,6 @@
 from datetime import datetime
+from utils import cleaning_methods
+from utils.mongo_credentials import credentials
 
 user_agent_list = [
     "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1"
@@ -21,10 +23,28 @@ user_agent_list = [
     "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/535.24 (KHTML, like Gecko) Chrome/19.0.1055.1 Safari/535.24",
 ]
 
-results_url = 'http://www.premierleague.com/en-gb/matchday/results.html?paramClubId=ALL\
-    &paramComp_8=true&paramSeason={season}&view=.dateSeason'
+results_url = 'https://www.premierleague.com/results?co=1&se={season}'
 
-def get_seasons_list(first_year):
-    seasons_list = []
-    end_year = datetime.today().year + 1
-    return ['{0}-{1}'.format(year, year+1) for year in range(first_year, end_year)]
+
+cleaning_methods_map = {
+    'attendance'    :   cleaning_methods.clean_attendance,
+    'date'          :   cleaning_methods.clean_date,
+    'stadium'       :   cleaning_methods.clean_stadium,
+    'score'         :   cleaning_methods.clean_score
+}
+
+
+def get_seasons_url_list(first_year):
+    month = datetime.today().month
+    extra_year = 0 if month < 8 else 1
+    end_year = datetime.today().year - extra_year
+    return [results_url.format(season=year-first_year) for year in range(first_year + 1, end_year + 1)]
+
+
+def extractor(section, selector_path, index=None):
+    data = section.xpath(selector_path).extract()
+    return data[index] if index is not None else data
+
+
+def get_mongo_host_port_str(host_name, port):
+    return '{host_name}:{port}'.format(host_name=host_name, port=port)

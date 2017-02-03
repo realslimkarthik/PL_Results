@@ -1,14 +1,21 @@
-# Define here the models for your scraped items
-#
-# See documentation in:
-# http://doc.scrapy.org/topics/items.html
-
 from scrapy.item import Item, Field
+from utils.utils import cleaning_methods_map
 
-class PlLinksItem(Item):
-    # define the fields for your item here like:
-    # name = Field()
+
+class PLResultData(Item):
     link = Field()
-    teams = Field()
     season = Field()
-    pass
+    home_team = Field()
+    away_team = Field()
+    score = Field()
+    home_scorers = Field()
+    away_scorers = Field()
+    date = Field()
+    attendance = Field()
+    referee = Field()
+    stadium = Field()
+
+    def __setitem__(self, key, value):
+        cleaning_method = cleaning_methods_map.get(key)
+        clean_value = cleaning_method(value) if cleaning_method else value
+        dict.__setitem__(self, key, clean_value)
